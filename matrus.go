@@ -78,7 +78,7 @@ func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level, bp int)
 	return &hook, nil
 }
 
-// Levels sets which levels to log to the matrix.org logging room
+// Levels gets the levels at which logging events should be sent to matrix.org
 func (matrusHook *MHook) Levels() []logrus.Level {
 	if matrusHook.AcceptedLevels == nil {
 		return allLevels
