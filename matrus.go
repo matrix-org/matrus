@@ -37,7 +37,6 @@ type MHook struct {
 	AcceptedLevels  []logrus.Level
 	Client          *gomatrix.Client
 	LoggingRoomID   string
-	Asynchronous    bool
 	formatter       logrus.Formatter
 	batchedMessages string
 	batchTicker     *time.Ticker
@@ -59,9 +58,8 @@ func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level, bp int)
 	hook := MHook{
 		Client:         cli,
 		LoggingRoomID:  loggingRoomID,
-		Asynchronous:   false,
 		AcceptedLevels: logLevelsFrom(level),
-		formatter:      &MatrixFormatter{},
+		formatter:      &matrixFormatter{},
 		batchTicker:    time.NewTicker(time.Second * time.Duration(bp)),
 	}
 
@@ -122,11 +120,11 @@ func (matrusHook *MHook) _HTMLMessage(msgType, html, body string) error {
 	return err
 }
 
-// MatrixFormatter message formatter
-type MatrixFormatter struct{}
+// matrixFormatter message formatter
+type matrixFormatter struct{}
 
 // Format formats a message to send to matrix
-func (formatter *MatrixFormatter) Format(e *logrus.Entry) ([]byte, error) {
+func (formatter *matrixFormatter) Format(e *logrus.Entry) ([]byte, error) {
 
 	if msg, err := e.String(); msg == "" || err != nil || e.Message == "" {
 		return nil, errors.New("Empty logging event")
