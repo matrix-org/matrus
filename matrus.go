@@ -43,11 +43,11 @@ type MHook struct {
 }
 
 // New instance of matrus logger hook
-// * "cli" - Gomatrix client instance
-// * "loggingRoomID" - The matrix.org roomID to send logging events to
-// * "level" - Events at this logging level or higher will be dispatched
-// * "bp" - The interval in seconds at which batches of logging events will be dispatched to matrix.org
-// (if 0 the batch dispatch period is set to the default of 15s)
+//  * "cli" - Gomatrix client instance
+//  * "loggingRoomID" - The matrix.org roomID to send logging events to
+//  * "level" - Events at this logging level or higher will be dispatched
+//  * "bp" - The interval in seconds at which batches of logging events will be dispatched to matrix.org
+//  (if 0 the batch dispatch period is set to the default of 15s)
 func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level, bp int) (*MHook, error) {
 	if cli == nil {
 		return nil, errors.New("Invalid gomatrix client")
