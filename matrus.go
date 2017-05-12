@@ -18,6 +18,7 @@ package matrus
 import (
 	"errors"
 	"fmt"
+	"html"
 	"strings"
 	"time"
 
@@ -130,12 +131,8 @@ type matrixFormatter struct{}
 
 // Format formats a message to send to matrix
 func (formatter *matrixFormatter) Format(e *logrus.Entry) ([]byte, error) {
-
-	if msg, err := e.String(); msg == "" || err != nil || e.Message == "" {
-		return nil, errors.New("Empty logging event")
-	}
-
 	var color string
+
 	switch e.Level {
 	case logrus.WarnLevel:
 		color = "orange"
@@ -147,25 +144,33 @@ func (formatter *matrixFormatter) Format(e *logrus.Entry) ([]byte, error) {
 		color = "lightblue"
 	}
 
-	html := `<font color=` + color + `>`
+	htmlMsg := fmt.Sprintf(`<font color="%s">`, color)
 
-	data := ""
+	var data string
 	for k, v := range e.Data {
 		if k != "msg" {
 			data += k + "=" + fmt.Sprint(v) + ", "
 		}
 	}
-	strings.TrimSuffix(data, ", ")
 
-	htmlBody := e.Message
-	htmlBody = strings.Replace(htmlBody, "<", "&lt;", -1)
-	htmlBody = strings.Replace(htmlBody, ">", "&gt;", -1)
+	data = strings.TrimSuffix(data, ", ")
+	data = html.EscapeString(data)
+
+	msgBody := strings.TrimSpace(e.Message)
+	msgBody = html.EscapeString(msgBody)
+
+	if data == "" && msgBody == "" {
+		return nil, errors.New("Empty logging event")
+	}
 
 	if data != "" {
-		html += "[" + data + "] - "
+		htmlMsg += "[" + data + "] - "
 	}
-	html += htmlBody
 
-	html += `</font>`
-	return []byte(html), nil
+	if msgBody != "" {
+		htmlMsg += fmt.Sprintf(`<b>%s</b>`, msgBody)
+	}
+
+	htmlMsg += `</font>`
+	return []byte(htmlMsg), nil
 }
