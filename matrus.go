@@ -26,12 +26,13 @@ import (
 )
 
 const (
-	// BATCHPERIOD defines the interval at which messages should be dispatched to
-	// the matrix.org logging room
-	BATCHPERIOD = 15 // seconds
+	// defaultBatchPeriod defines the default interval at which messages should be
+	// ispatched to the matrix.org logging room
+	defaultBatchPeriod = 15 // seconds
 )
 
 // MHook is a matrus Hook for logging messages to the specified matrix.org room
+// MHook implements logrus.Hook interface
 type MHook struct {
 	AcceptedLevels  []logrus.Level
 	Client          *gomatrix.Client
@@ -43,20 +44,25 @@ type MHook struct {
 }
 
 // New instance of matrus logger hook
-func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level) (*MHook, error) {
+func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level, bp int) (*MHook, error) {
 	if cli == nil {
 		return nil, errors.New("Invalid gomatrix client")
 	} else if loggingRoomID == "" {
 		return nil, errors.New("Invalid matrix.org room ID")
 	}
 
+	// Set the batch dispatcher period
+	if bp == 0 {
+		bp = defaultBatchPeriod
+	}
+
 	hook := MHook{
 		Client:         cli,
 		LoggingRoomID:  loggingRoomID,
 		Asynchronous:   false,
-		AcceptedLevels: LogLevelsFrom(level),
+		AcceptedLevels: logLevelsFrom(level),
 		formatter:      &MatrixFormatter{},
-		batchTicker:    time.NewTicker(time.Second * BATCHPERIOD),
+		batchTicker:    time.NewTicker(time.Second * time.Duration(bp)),
 	}
 
 	// Start periodic dispatcher
@@ -72,7 +78,7 @@ func New(cli *gomatrix.Client, loggingRoomID string, level logrus.Level) (*MHook
 // Levels sets which levels to log to the matrix.org logging room
 func (matrusHook *MHook) Levels() []logrus.Level {
 	if matrusHook.AcceptedLevels == nil {
-		return AllLevels
+		return allLevels
 	}
 	return matrusHook.AcceptedLevels
 }

@@ -19,7 +19,7 @@ import (
 )
 
 // AllLevels represents supported log levels
-var AllLevels = []logrus.Level{
+var allLevels = []logrus.Level{
 	logrus.DebugLevel,
 	logrus.InfoLevel,
 	logrus.WarnLevel,
@@ -29,10 +29,10 @@ var AllLevels = []logrus.Level{
 }
 
 // LogLevelsFrom returns logging levels above and including the specified level
-func LogLevelsFrom(l logrus.Level) []logrus.Level {
-	for i := range AllLevels {
-		if AllLevels[i] == l {
-			return AllLevels[i:]
+func logLevelsFrom(l logrus.Level) []logrus.Level {
+	for i := range allLevels {
+		if allLevels[i] == l {
+			return allLevels[i:]
 		}
 	}
 	return []logrus.Level{}
