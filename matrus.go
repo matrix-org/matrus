@@ -96,6 +96,7 @@ func (matrusHook *MHook) Fire(e *logrus.Entry) error {
 		return nil
 	}
 
+	// TODO -- TRuncate messages if larger than maxQueuedMessages
 	matrusHook.batchedMessages = append(matrusHook.batchedMessages, html)
 	return nil
 }
