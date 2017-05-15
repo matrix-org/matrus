@@ -29,7 +29,8 @@ import (
 const (
 	// defaultBatchPeriod defines the default interval at which messages should be
 	// ispatched to the matrix.org logging room
-	defaultBatchPeriod = 15 // seconds
+	defaultBatchPeriod = 15   // seconds
+	maxQueuedMessages  = 1000 // Max number of logging messages to buffer
 )
 
 // MHook is a matrus Hook for logging messages to the specified matrix.org room
@@ -39,7 +40,7 @@ type MHook struct {
 	Client          *gomatrix.Client
 	LoggingRoomID   string
 	formatter       logrus.Formatter
-	batchedMessages string
+	batchedMessages []string
 	batchTicker     *time.Ticker
 }
 
@@ -95,20 +96,22 @@ func (matrusHook *MHook) Fire(e *logrus.Entry) error {
 		return nil
 	}
 
-	if matrusHook.batchedMessages != "" {
-		matrusHook.batchedMessages += "<br/>"
+	// Append new message
+	matrusHook.batchedMessages = append(matrusHook.batchedMessages, html)
+	// Truncate messages if larger than maxQueuedMessages
+	if len(matrusHook.batchedMessages) > maxQueuedMessages {
+		matrusHook.batchedMessages = matrusHook.batchedMessages[(len(matrusHook.batchedMessages) - maxQueuedMessages):]
 	}
-
-	matrusHook.batchedMessages += html
 	return nil
 }
 
 // sendBatchedMessages periodically dispatches messages in to the matrix.org logging room
 func (matrusHook *MHook) sendBatchedMessages() (bool, error) {
-	if matrusHook.batchedMessages != "" {
-		err := matrusHook._HTMLMessage("m.text", matrusHook.batchedMessages, "")
-		if err == nil {
-			matrusHook.batchedMessages = ""
+	if len(matrusHook.batchedMessages) > 0 {
+		if err := matrusHook._HTMLMessage("m.text",
+			strings.Join(matrusHook.batchedMessages, "<br/>"),
+			strings.Join(matrusHook.batchedMessages, "\n")); err == nil {
+			matrusHook.batchedMessages = make([]string, 0)
 		}
 		return true, err
 	}
