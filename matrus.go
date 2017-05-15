@@ -108,7 +108,7 @@ func (matrusHook *MHook) Fire(e *logrus.Entry) error {
 // sendBatchedMessages periodically dispatches messages in to the matrix.org logging room
 func (matrusHook *MHook) sendBatchedMessages() (bool, error) {
 	if len(matrusHook.batchedMessages) > 0 {
-		if err := matrusHook._HTMLMessage("m.text",
+		if err := matrusHook._HTMLMessage("m.notice",
 			strings.Join(matrusHook.batchedMessages, "<br/>"),
 			strings.Join(matrusHook.batchedMessages, "\n")); err == nil {
 			matrusHook.batchedMessages = make([]string, 0)
