@@ -112,8 +112,9 @@ func (matrusHook *MHook) sendBatchedMessages() (bool, error) {
 			strings.Join(matrusHook.batchedMessages, "<br/>"),
 			strings.Join(matrusHook.batchedMessages, "\n")); err == nil {
 			matrusHook.batchedMessages = make([]string, 0)
+			return true, err
 		}
-		return true, err
+		return true, nil
 	}
 	return false, nil
 }
